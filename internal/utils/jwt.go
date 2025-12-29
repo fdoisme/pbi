@@ -10,8 +10,9 @@ import (
 var signatureKEY []byte
 
 type DataClaims struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
+	ID      string `json:"id"`
+	Email   string `json:"email"`
+	IsAdmin bool   `json:"isAdmin"`
 }
 
 type Claims struct {

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"tugas_akhir_example/internal/pkg/entity"
 	authmodel "tugas_akhir_example/internal/pkg/model"
 	authUsc "tugas_akhir_example/internal/pkg/usecase"
 
@@ -14,11 +15,13 @@ type AuthController interface {
 
 type AuthControllerImpl struct {
 	authUsc authUsc.UsersUseCase
+	tokoUsc authUsc.TokoUseCase
 }
 
-func NewAuthController(authUsc authUsc.UsersUseCase) AuthController {
+func NewAuthController(authUsc authUsc.UsersUseCase, tokoUsc authUsc.TokoUseCase) AuthController {
 	return &AuthControllerImpl{
 		authUsc: authUsc,
+		tokoUsc: tokoUsc,
 	}
 }
 
@@ -57,6 +60,16 @@ func (uc *AuthControllerImpl) Register(ctx *fiber.Ctx) error {
 	}
 
 	res, err := uc.authUsc.CreateUsers(c, *data)
+	if err != nil {
+		return ctx.Status(err.Code).JSON(fiber.Map{
+			"error": err.Err.Error(),
+		})
+	}
+
+	_, err = uc.tokoUsc.CreateToko(c, entity.Toko{
+		IDUser:       res,
+		NamaToko: "Toko " + data.NamaUser,
+	})
 	if err != nil {
 		return ctx.Status(err.Code).JSON(fiber.Map{
 			"error": err.Err.Error(),

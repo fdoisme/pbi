@@ -17,7 +17,7 @@ func main() {
 
 	app := fiber.New()
 	app.Use(logger.New())
-
+	app.Static("/uploads", "./uploads")
 	rest.HTTPRouteInit(app, containerConf)
 
 	port := fmt.Sprintf("%s:%d", containerConf.Apps.Host, containerConf.Apps.HttpPort)

@@ -32,7 +32,7 @@ func NewUsersUseCase(userrepository userrepository.UsersRepository) UsersUseCase
 }
 
 func (alc *UsersUseCaseImpl) Login(ctx context.Context, params usermodel.Login) (res usermodel.LoginRes, err *helper.ErrorStruct) {
-	resRepo, errRepo := alc.userrepository.GetUsersByEmail(ctx, params.Email)
+	resRepo, errRepo := alc.userrepository.GetUsersByNoTelp(ctx, params.NoTelp)
 	if errors.Is(errRepo, gorm.ErrRecordNotFound) {
 		return res, &helper.ErrorStruct{
 			Code: fiber.StatusNotFound,
@@ -47,8 +47,8 @@ func (alc *UsersUseCaseImpl) Login(ctx context.Context, params usermodel.Login) 
 			Err:  errRepo,
 		}
 	}
-
-	isValid := utils.CheckPasswordHash(params.Password, resRepo.Password)
+	// fmt.Println("[USECASE]", params.KataSandi, hashPass)
+	isValid := utils.CheckPasswordHash(params.KataSandi, resRepo.KataSandi)
 	if !isValid {
 		return res, &helper.ErrorStruct{
 			Code: fiber.StatusUnauthorized,
@@ -57,8 +57,9 @@ func (alc *UsersUseCaseImpl) Login(ctx context.Context, params usermodel.Login) 
 	}
 
 	tokenInit := utils.NewToken(utils.DataClaims{
-		ID:    fmt.Sprint(resRepo.ID),
-		Email: resRepo.Email,
+		ID:      fmt.Sprint(resRepo.ID),
+		Email:   resRepo.Email,
+		IsAdmin: resRepo.IsAdmin,
 	})
 
 	token, errToken := tokenInit.Create()
@@ -71,7 +72,7 @@ func (alc *UsersUseCaseImpl) Login(ctx context.Context, params usermodel.Login) 
 
 	res = usermodel.LoginRes{
 		Email: resRepo.Email,
-		Name:  resRepo.Name,
+		Name:  resRepo.NamaUser,
 		Token: token,
 	}
 
@@ -87,8 +88,16 @@ func (alc *UsersUseCaseImpl) CreateUsers(ctx context.Context, params usermodel.C
 	}
 
 	// TODO PENGECEKAN EMAIL SUDAH TERPAKAI ATAU BELUM
-
-	hashPass, errHash := utils.HashPassword(params.Password)
+	user, _ := alc.userrepository.GetUsersByEmail(ctx, params.Email)
+	if user.Email != "" {
+		newError := errors.New("Email sudah digunakan")
+		helper.Logger(helper.LoggerLevelError, fmt.Sprintf("Error at CreateUsers : %s", newError.Error()), newError)
+		return res, &helper.ErrorStruct{
+			Code: fiber.StatusBadRequest,
+			Err:  newError,
+		}
+	}
+	hashPass, errHash := utils.HashPassword(params.KataSandi)
 	if errHash != nil {
 		log.Println(errHash)
 		err = &helper.ErrorStruct{
@@ -97,11 +106,18 @@ func (alc *UsersUseCaseImpl) CreateUsers(ctx context.Context, params usermodel.C
 		}
 		return
 	}
-
+	// fmt.Println("[USECASE]", params.KataSandi, hashPass)
+	tmpstp := utils.ParseDateToGoTime(params.TanggalLahir, err)
+	tanggalLahir := utils.ParseDateToStr(tmpstp)
 	resRepo, errRepo := alc.userrepository.CreateUsers(ctx, entity.User{
-		Email:    params.Email,
-		Name:     params.Name,
-		Password: hashPass,
+		Email:        params.Email,
+		KataSandi:    hashPass,
+		NamaUser:     params.NamaUser,
+		NoTelp:       params.NoTelp,
+		TanggalLahir: tanggalLahir,
+		Pekerjaan:    params.Pekerjaan,
+		IDProvinsi:   params.IDProvinsi,
+		IDKota:       params.IDKota,
 	})
 	if errRepo != nil {
 		helper.Logger(helper.LoggerLevelError, fmt.Sprintf("Error at CreateUsers : %s", errRepo.Error()), errRepo)

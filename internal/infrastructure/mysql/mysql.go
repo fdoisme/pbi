@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"time"
 	"tugas_akhir_example/internal/helper"
 
 	"github.com/spf13/viper"
@@ -33,18 +34,20 @@ func DatabaseInit(v *viper.Viper) *gorm.DB {
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		// helper.Logger(helper.LoggerLevelPanic, fmt.Sprintf("Cannot conenct to database : %s", err.Error()), err)
+		helper.Logger(helper.LoggerLevelPanic, fmt.Sprintf("Cannot conenct to database : %s", err.Error()), err)
 		panic(err)
 	}
 
-	_, err = db.DB()
+	sqlDB, err := db.DB()
 	if err != nil {
-		// helper.Logger(helper.LoggerLevelPanic, fmt.Sprintf("Cannot conenct to database : %s", err.Error()), err)
+		helper.Logger(helper.LoggerLevelPanic, fmt.Sprintf("Cannot conenct to database : %s", err.Error()), err)
 		panic(err)
 	}
 
 	// TODO POOLING CONNECTION
-
+	sqlDB.SetMaxIdleConns(mysqlConfig.MinIdleConnections)
+	sqlDB.SetMaxOpenConns(mysqlConfig.MaxOpenConnections)
+	sqlDB.SetConnMaxLifetime(time.Duration(mysqlConfig.MaxLifetime) * time.Second)
 	helper.Logger(helper.LoggerLevelInfo, "⇨ MySQL status is connected", nil)
 	RunMigration(db)
 

@@ -2,6 +2,32 @@ package mysql
 
 import "tugas_akhir_example/internal/pkg/entity"
 
+var categoriesSeed = []entity.Category{
+	{
+		NamaCategory: "Electronics",
+	},
+	{
+		NamaCategory: "Fashion",
+	},
+	{
+		NamaCategory: "Home Appliances",
+	},
+	{
+		NamaCategory: "Books",
+	},
+	{
+		NamaCategory: "Toys",
+	},
+	{
+		NamaCategory: "Sports",
+	},
+	{
+		NamaCategory: "Beauty",
+	},
+	{
+		NamaCategory: "Food & Beverages",
+	},
+}
 var booksSeed = []entity.Book{
 	{
 		Title:       "Drew: The Man Behind the Poster",

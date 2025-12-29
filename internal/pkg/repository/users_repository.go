@@ -10,6 +10,7 @@ import (
 type UsersRepository interface {
 	GetUsersByEmail(ctx context.Context, email string) (res entity.User, err error)
 	CreateUsers(ctx context.Context, data entity.User) (res uint, err error)
+	GetUsersByNoTelp(ctx context.Context, noTelp string) (res entity.User, err error)
 }
 
 type UsersRepositoryImpl struct {
@@ -24,6 +25,12 @@ func NewUsersRepository(db *gorm.DB) UsersRepository {
 
 func (r *UsersRepositoryImpl) GetUsersByEmail(ctx context.Context, email string) (res entity.User, err error) {
 	if err := r.db.Where("email = ?", email).First(&res).WithContext(ctx).Error; err != nil {
+		return res, err
+	}
+	return res, nil
+}
+func (r *UsersRepositoryImpl) GetUsersByNoTelp(ctx context.Context, noTelp string) (res entity.User, err error) {
+	if err := r.db.Where("no_telp = ?", noTelp).First(&res).WithContext(ctx).Error; err != nil {
 		return res, err
 	}
 	return res, nil

@@ -19,10 +19,13 @@ var v *viper.Viper
 
 type (
 	Container struct {
-		Mysqldb  *gorm.DB
-		Apps     *Apps
-		BooksUsc usecase.BooksUseCase
-		UserUsc  usecase.UsersUseCase
+		Mysqldb     *gorm.DB
+		Apps        *Apps
+		BooksUsc    usecase.BooksUseCase
+		UserUsc     usecase.UsersUseCase
+		CategoryUsc usecase.CategoriesUseCase
+		TokoUsc     usecase.TokoUseCase
+		ProdukUsc   usecase.ProdukUseCase
 	}
 
 	Apps struct {
@@ -86,15 +89,25 @@ func InitContainer() (cont *Container) {
 
 	bookRepo := repository.NewBooksRepository(mysqldb)
 	userRepo := repository.NewUsersRepository(mysqldb)
+	categoryRepo := repository.NewCategoriesRepository(mysqldb)
+	tokoRepo := repository.NewTokoRepository(mysqldb)
+	produkRepo := repository.NewProdukRepository(mysqldb)
+	fotoProdukRepo := repository.NewFotoProdukRepository(mysqldb)
 
 	bookUsc := usecase.NewBooksUseCase(bookRepo)
 	userUsc := usecase.NewUsersUseCase(userRepo)
+	categoryUsc := usecase.NewCategoriesUseCase(categoryRepo)
+	tokoUsc := usecase.NewTokoUseCase(tokoRepo)
+	produkUsc := usecase.NewProdukUseCase(produkRepo, tokoRepo, fotoProdukRepo)
 
 	return &Container{
-		Apps:     &apps,
-		Mysqldb:  mysqldb,
-		BooksUsc: bookUsc,
-		UserUsc:  userUsc,
+		Apps:        &apps,
+		Mysqldb:     mysqldb,
+		BooksUsc:    bookUsc,
+		UserUsc:     userUsc,
+		CategoryUsc: categoryUsc,
+		TokoUsc:     tokoUsc,
+		ProdukUsc:   produkUsc,
 	}
 
 }

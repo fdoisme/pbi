@@ -24,6 +24,7 @@ func MiddlewareAuth(ctx *fiber.Ctx) error {
 
 	ctx.Locals("userid", claims["id"])
 	ctx.Locals("useremail", claims["email"])
+	ctx.Locals("isAdmin", claims["isAdmin"])
 
 	// Go to next middleware:
 	return ctx.Next()
